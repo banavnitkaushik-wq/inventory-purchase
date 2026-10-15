@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Flow - Enterprise Purchase & Inventory Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sfBlue: { 50: '#f0f9ff', 100: '#e0f2fe', 600: '#0284c7', 700: '#0369a1', 900: '#0f172a' },
+                        sfGray: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 700: '#334155', 800: '#1e293b' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; color: #1e293b; font-family: 'Inter', sans-serif; }
+        .card-shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden bg-sfGray-50">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-72 bg-white border-r border-sfGray-200 flex flex-col justify-between shrink-0 select-none z-20 shadow-sm">
+        <div class="flex flex-col h-full">
+            <div class="p-5 border-b border-sfGray-200 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sfBlue-600 to-cyan-500 flex items-center justify-center text-white font-black text-xl shadow-md">
+                    <i class="fa-solid fa-cubes"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base tracking-tight text-sfGray-800 leading-tight">STOCK FLOW</h1>
+                    <p class="text-[11px] text-sfBlue-600 font-mono font-semibold">ENTERPRISE SUITE (INDIA)</p>
+                </div>
+            </div>
+
+            <nav class="p-3 space-y-1 overflow-y-auto flex-1 text-xs">
+                <!-- Master Analytics -->
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg transition font-semibold bg-sfBlue-50 text-sfBlue-700">
+                    <i class="fa-solid fa-chart-pie w-4 text-sfBlue-600"></i>
+                    <span>Master Analytics Cockpit</span>
+                </button>
+
+                <!-- Inventory Management Section -->
+                <div class="text-[10px] font-bold text-sfGray-400 uppercase px-3 pt-4 pb-1 tracking-wider">Inventory Management</div>
+                <button onclick="switchTab('materials')" id="nav-materials" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-database w-4 text-slate-400"></i><span>Material Master</span>
+                </button>
+                <button onclick="switchTab('stock_lookup')" id="nav-stock_lookup" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-boxes-stacked w-4 text-slate-400"></i><span>Live Stock Lookup (MMBE)</span>
+                </button>
+                <button onclick="switchTab('gr')" id="nav-gr" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-box-arrow-in-down w-4 text-slate-400"></i><span>Goods Receipt (GR)</span>
+                </button>
+                <button onclick="switchTab('gatepass')" id="nav-gatepass" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-id-card w-4 text-slate-400"></i><span>RGP & NRGP Gate Passes</span>
+                </button>
+                <button onclick="switchTab('movement')" id="nav-movement" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-right-left w-4 text-slate-400"></i><span>Stock Movement Ledger</span>
+                </button>
+                <button onclick="switchTab('issue')" id="nav-issue" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-arrow-up-right-from-square w-4 text-slate-400"></i><span>Material Issue</span>
+                </button>
+                <button onclick="switchTab('inv_analytics')" id="nav-inv_analytics" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-chart-line w-4 text-slate-400"></i><span>Inventory Analytics</span>
+                </button>
+
+                <!-- Purchase Management Section (P2P) -->
+                <div class="text-[10px] font-bold text-sfGray-400 uppercase px-3 pt-4 pb-1 tracking-wider">Purchase Management (P2P)</div>
+                <button onclick="switchTab('vendors')" id="nav-vendors" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-truck-field w-4 text-slate-400"></i><span>Vendor Master</span>
+                </button>
+                <button onclick="switchTab('pr')" id="nav-pr" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-file-lines w-4 text-slate-400"></i><span>Purchase Requisition (PR)</span>
+                </button>
+                <button onclick="switchTab('rfq')" id="nav-rfq" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-file-invoice w-4 text-slate-400"></i><span>RFQ & Quotations</span>
+                </button>
+                <button onclick="switchTab('po')" id="nav-po" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-file-circle-check w-4 text-slate-400"></i><span>Purchase Order (PO)</span>
+                </button>
+                <button onclick="switchTab('miro')" id="nav-miro" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-receipt w-4 text-slate-400"></i><span>Invoice Verification (MIRO)</span>
+                </button>
+                <button onclick="switchTab('pur_analytics')" id="nav-pur_analytics" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2 rounded-lg transition font-medium text-sfGray-700 hover:bg-sfGray-100">
+                    <i class="fa-solid fa-chart-column w-4 text-slate-400"></i><span>Purchase Analytics</span>
+                </button>
+            </nav>
+
+            <div class="p-3 border-t border-sfGray-200 bg-sfGray-50">
+                <button onclick="resetAllData()" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-semibold transition flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-trash-can"></i><span>Clear All Data</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col overflow-y-auto bg-sfGray-50">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-sfGray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+            <div>
+                <h2 id="page-title" class="text-xl font-bold text-sfGray-800 tracking-tight">Master Analytics Cockpit</h2>
+                <p id="page-subtitle" class="text-xs text-sfGray-500 mt-0.5">Real-time enterprise overview, inventory valuation, and P2P tracking</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="quickActionPrompt()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition shadow-sm">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Quick Entry</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-6 flex-1 max-w-7xl w-full mx-auto">
+
+            <!-- TAB 1: MASTER ANALYTICS DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-sfGray-500 uppercase">Total Inventory Value</p>
+                            <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="dash-inv-val">₹0.00</h3>
+                            <p class="text-xs text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-database mr-1"></i><span id="dash-mat-count">0</span> Active SKUs</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-sfBlue-50 border border-sfBlue-100 flex items-center justify-center text-sfBlue-600 text-xl">
+                            <i class="fa-solid fa-warehouse"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-sfGray-500 uppercase">Total Purchase Spend</p>
+                            <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="dash-po-spend">₹0.00</h3>
+                            <p class="text-xs text-amber-600 mt-1 font-medium"><i class="fa-solid fa-cart-shopping mr-1"></i><span id="dash-po-count">0</span> Purchase Orders</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 text-xl">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-sfGray-500 uppercase">Pending Requisitions</p>
+                            <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="dash-pr-count">0</h3>
+                            <p class="text-xs text-blue-600 mt-1 font-medium"><i class="fa-solid fa-clock mr-1"></i>Awaiting PO</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-xl">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-sfGray-500 uppercase">Active Gate Passes</p>
+                            <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="dash-gp-count">0</h3>
+                            <p class="text-xs text-purple-600 mt-1 font-medium"><i class="fa-solid fa-truck mr-1"></i>RGP/NRGP Tracked</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 text-xl">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow">
+                        <h3 class="text-sm font-bold text-sfGray-800 mb-4">Inventory Valuation by Material Group (₹)</h3>
+                        <div class="h-72"><canvas id="dashChartInv"></canvas></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow">
+                        <h3 class="text-sm font-bold text-sfGray-800 mb-4">P2P Spend Distribution by Vendor (₹)</h3>
+                        <div class="h-72"><canvas id="dashChartPo"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: MATERIAL MASTER -->
+            <section id="tab-materials" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Material Master Catalog</h3>
+                            <p class="text-xs text-sfGray-500">Define raw materials, spare parts, units, standard price in ₹, and baseline stock.</p>
+                        </div>
+                        <button onclick="openModal('materialModal')" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Add Material</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Material ID</th>
+                                    <th class="p-3">Description</th>
+                                    <th class="p-3">Group</th>
+                                    <th class="p-3">Unit</th>
+                                    <th class="p-3 text-right">Standard Price (₹)</th>
+                                    <th class="p-3 text-right">Current Stock</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materials-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No materials added yet. Click "Add Material" to begin.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: LIVE STOCK LOOKUP -->
+            <section id="tab-stock_lookup" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Live Stock Lookup (Stock Ledger / MMBE)</h3>
+                            <p class="text-xs text-sfGray-500">Real-time inventory levels, valuation, and stock status across all materials.</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="stock-search" oninput="renderStockLookup()" placeholder="Search material..." class="bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-1.5 text-xs text-sfGray-800 font-mono">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Material ID</th>
+                                    <th class="p-3">Description</th>
+                                    <th class="p-3">Group</th>
+                                    <th class="p-3 text-right">Available Stock</th>
+                                    <th class="p-3 text-right">Unit Price (₹)</th>
+                                    <th class="p-3 text-right">Total Stock Value (₹)</th>
+                                    <th class="p-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-lookup-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No materials available. Add materials in Material Master.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: GOODS RECEIPT (GR) -->
+            <section id="tab-gr" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Goods Receipt (GR) Management</h3>
+                            <p class="text-xs text-sfGray-500">Receive goods against Purchase Orders. Automatically updates warehouse stock levels.</p>
+                        </div>
+                        <button onclick="openGrModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Post Goods Receipt</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">GR Doc #</th>
+                                    <th class="p-3">PO Reference</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3 text-right">Received Qty</th>
+                                    <th class="p-3">Posting Date</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gr-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No Goods Receipts posted yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: RGP & NRGP GATE PASSES -->
+            <section id="tab-gatepass" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Returnable & Non-Returnable Gate Passes (RGP & NRGP)</h3>
+                            <p class="text-xs text-sfGray-500">Track outward and inward movement of materials for repair, subcontracting, or return.</p>
+                        </div>
+                        <button onclick="openGatePassModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Create Gate Pass</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Gate Pass #</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3 text-right">Qty</th>
+                                    <th class="p-3">Recipient / Vendor</th>
+                                    <th class="p-3">Expected Return</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gatepass-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="8" class="p-6 text-center text-sfGray-400 italic">No gate passes recorded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: STOCK MOVEMENT LEDGER -->
+            <section id="tab-movement" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Stock Movement Ledger</h3>
+                            <p class="text-xs text-sfGray-500">Complete audit trail of all stock additions, transfers, and consumption.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Movement ID</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3">Movement Type</th>
+                                    <th class="p-3 text-right">Quantity</th>
+                                    <th class="p-3">Reference Doc</th>
+                                    <th class="p-3 text-right">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movement-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No stock movements recorded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: MATERIAL ISSUE -->
+            <section id="tab-issue" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Material Issue to Production / Cost Center</h3>
+                            <p class="text-xs text-sfGray-500">Issue stock from inventory to shop floor or internal departments, reducing available stock.</p>
+                        </div>
+                        <button onclick="openIssueModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Issue Material</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Issue ID</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3 text-right">Quantity Issued</th>
+                                    <th class="p-3">Cost Center / Dept</th>
+                                    <th class="p-3 text-right">Date</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="issue-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No material issues recorded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 8: INVENTORY ANALYTICS -->
+            <section id="tab-inv_analytics" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow">
+                        <p class="text-xs font-medium text-sfGray-500 uppercase">Total SKUs</p>
+                        <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="ia-skus">0</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow">
+                        <p class="text-xs font-medium text-sfGray-500 uppercase">Total Valuation</p>
+                        <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="ia-val">₹0.00</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow">
+                        <p class="text-xs font-medium text-sfGray-500 uppercase">Total Stock Units</p>
+                        <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="ia-units">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow">
+                    <h3 class="text-sm font-bold text-sfGray-800 mb-4">Stock Levels by Material (₹ Value)</h3>
+                    <div class="h-80"><canvas id="invAnalyticsChart"></canvas></div>
+                </div>
+            </section>
+
+            <!-- TAB 9: VENDOR MASTER -->
+            <section id="tab-vendors" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Vendor Master Directory</h3>
+                            <p class="text-xs text-sfGray-500">Manage approved suppliers, contact details, and payment terms.</p>
+                        </div>
+                        <button onclick="openModal('vendorModal')" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Add Vendor</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Vendor ID</th>
+                                    <th class="p-3">Vendor Name</th>
+                                    <th class="p-3">Contact Email</th>
+                                    <th class="p-3">Payment Terms</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendors-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="5" class="p-6 text-center text-sfGray-400 italic">No vendors added yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 10: PURCHASE REQUISITION (PR) -->
+            <section id="tab-pr" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Purchase Requisitions (PR)</h3>
+                            <p class="text-xs text-sfGray-500">Internal requirements raised for procurement. Can be converted directly to Purchase Orders.</p>
+                        </div>
+                        <button onclick="openPrModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Create PR</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">PR #</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3 text-right">Quantity</th>
+                                    <th class="p-3">Requested By</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pr-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No Purchase Requisitions created.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 11: RFQ & QUOTATIONS -->
+            <section id="tab-rfq" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Request for Quotation (RFQ) & Bidding</h3>
+                            <p class="text-xs text-sfGray-500">Solicit and compare bids from approved vendors before issuing a PO.</p>
+                        </div>
+                        <button onclick="openRfqModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Create RFQ</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">RFQ #</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3 text-right">Qty</th>
+                                    <th class="p-3">Vendor</th>
+                                    <th class="p-3 text-right">Quoted Price (₹)</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rfq-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No RFQs recorded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 12: PURCHASE ORDER (PO) -->
+            <section id="tab-po" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Purchase Orders (PO)</h3>
+                            <p class="text-xs text-sfGray-500">Binding contracts issued to vendors for material procurement.</p>
+                        </div>
+                        <button onclick="openPoModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Create PO</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">PO #</th>
+                                    <th class="p-3">Vendor</th>
+                                    <th class="p-3">Material</th>
+                                    <th class="p-3 text-right">Qty</th>
+                                    <th class="p-3 text-right">Net Value (₹)</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="po-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No Purchase Orders created.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 13: INVOICE VERIFICATION (MIRO) -->
+            <section id="tab-miro" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow space-y-4">
+                    <div class="flex items-center justify-between border-b border-sfGray-100 pb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-sfGray-800">Logistics Invoice Verification (MIRO)</h3>
+                            <p class="text-xs text-sfGray-500">3-Way Match verification (Purchase Order vs Goods Receipt vs Vendor Invoice).</p>
+                        </div>
+                        <button onclick="openMiroModal()" class="px-4 py-2 bg-sfBlue-600 hover:bg-sfBlue-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Verify Invoice</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-sfGray-200 text-xs font-semibold text-sfGray-500 uppercase bg-sfGray-50">
+                                    <th class="p-3">Invoice #</th>
+                                    <th class="p-3">PO Ref</th>
+                                    <th class="p-3">Vendor</th>
+                                    <th class="p-3 text-right">Amount (₹)</th>
+                                    <th class="p-3 text-center">3-Way Match</th>
+                                    <th class="p-3 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="miro-table-body" class="divide-y divide-sfGray-100 text-xs font-mono text-sfGray-700">
+                                <tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No invoices verified.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 14: PURCHASE ANALYTICS -->
+            <section id="tab-pur_analytics" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow">
+                        <p class="text-xs font-medium text-sfGray-500 uppercase">Total PO Spend</p>
+                        <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="pa-spend">₹0.00</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow">
+                        <p class="text-xs font-medium text-sfGray-500 uppercase">Active Vendors</p>
+                        <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="pa-vendors">0</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-sfGray-200 card-shadow">
+                        <p class="text-xs font-medium text-sfGray-500 uppercase">Total POs Issued</p>
+                        <h3 class="text-2xl font-bold text-sfGray-800 font-mono mt-1" id="pa-pos">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-sfGray-200 card-shadow">
+                    <h3 class="text-sm font-bold text-sfGray-800 mb-4">Vendor Spend Breakdown (₹)</h3>
+                    <div class="h-80"><canvas id="purAnalyticsChart"></canvas></div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODALS -->
+
+    <!-- Material Modal -->
+    <div id="materialModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Add New Material</h3>
+                <button onclick="closeModal('materialModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Material ID</label><input type="text" id="m-id" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" placeholder="e.g. MAT-001"></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Description</label><input type="text" id="m-desc" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" placeholder="e.g. Steel Rod"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Group</label><input type="text" id="m-group" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" placeholder="Raw Materials"></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Unit</label><input type="text" id="m-unit" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800 font-mono" placeholder="PCS / TON"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Standard Price (₹)</label><input type="number" id="m-price" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="100"></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Initial Stock</label><input type="number" id="m-stock" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="0"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('materialModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveMaterial()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Save Material</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Modal -->
+    <div id="vendorModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Add New Vendor</h3>
+                <button onclick="closeModal('vendorModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Vendor ID</label><input type="text" id="v-id" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" placeholder="e.g. VEND-001"></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Vendor Name</label><input type="text" id="v-name" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" placeholder="Acme Corp"></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Contact Email</label><input type="email" id="v-email" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" placeholder="contact@acme.com"></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Payment Terms</label><input type="text" id="v-terms" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" value="Net 30 Days"></div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('vendorModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveVendor()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Save Vendor</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PR Modal -->
+    <div id="prModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Create Purchase Requisition (PR)</h3>
+                <button onclick="closeModal('prModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Material</label><select id="pr-mat" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Quantity</label><input type="number" id="pr-qty" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="10"></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Requested By</label><input type="text" id="pr-req" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" value="Shop Floor"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('prModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="savePr()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Save PR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RFQ Modal -->
+    <div id="rfqModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Create Request for Quotation (RFQ)</h3>
+                <button onclick="closeModal('rfqModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Material</label><select id="rfq-mat" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Vendor</label><select id="rfq-vendor" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Quantity</label><input type="number" id="rfq-qty" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="10"></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Quoted Price (₹)</label><input type="number" id="rfq-price" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="100"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('rfqModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveRfq()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Save RFQ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PO Modal -->
+    <div id="poModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Create Purchase Order (PO)</h3>
+                <button onclick="closeModal('poModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Vendor</label><select id="po-vendor" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Material</label><select id="po-mat" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Quantity</label><input type="number" id="po-qty" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="10"></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Unit Price (₹)</label><input type="number" id="po-price" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="100"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('poModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="savePo()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Issue PO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GR Modal -->
+    <div id="grModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Post Goods Receipt (GR)</h3>
+                <button onclick="closeModal('grModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Purchase Order</label><select id="gr-po" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Received Quantity</label><input type="number" id="gr-qty" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="10"></div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('grModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveGr()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Post GR & Update Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gate Pass Modal -->
+    <div id="gatePassModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Create Gate Pass (RGP / NRGP)</h3>
+                <button onclick="closeModal('gatePassModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Type</label><select id="gp-type" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"><option value="RGP">RGP (Returnable)</option><option value="NRGP">NRGP (Non-Returnable)</option></select></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Quantity</label><input type="number" id="gp-qty" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="5"></div>
+                </div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Material</label><select id="gp-mat" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Recipient / Subcontractor</label><input type="text" id="gp-recipient" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" placeholder="Vendor / Tool Room"></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Expected Return Date</label><input type="date" id="gp-date" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('gatePassModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveGatePass()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Issue Gate Pass</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Material Issue Modal -->
+    <div id="issueModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Issue Material to Production</h3>
+                <button onclick="closeModal('issueModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Material</label><select id="issue-mat" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Quantity to Issue</label><input type="number" id="issue-qty" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="5"></div>
+                    <div><label class="block font-medium text-sfGray-600 mb-1">Cost Center / Dept</label><input type="text" id="issue-dept" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 text-sfGray-800" value="Assembly Line 1"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('issueModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveIssue()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Issue & Deduct Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIRO Invoice Modal -->
+    <div id="miroModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center hidden">
+        <div class="bg-white border border-sfGray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-sfGray-100 pb-3">
+                <h3 class="text-sm font-bold text-sfGray-800">Verify Vendor Invoice (MIRO)</h3>
+                <button onclick="closeModal('miroModal')" class="text-sfGray-400 hover:text-sfGray-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div><label class="block font-medium text-sfGray-600 mb-1">Select Purchase Order</label><select id="miro-po" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800"></select></div>
+                <div><label class="block font-medium text-sfGray-600 mb-1">Vendor Invoice Amount (₹)</label><input type="number" id="miro-amt" class="w-full bg-sfGray-50 border border-sfGray-200 rounded-lg px-3 py-2 font-mono text-sfGray-800" value="1000"></div>
+            </div>
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-sfGray-100">
+                <button onclick="closeModal('miroModal')" class="px-4 py-2 bg-sfGray-100 text-sfGray-600 text-xs font-semibold rounded-xl">Cancel</button>
+                <button onclick="saveMiro()" class="px-4 py-2 bg-sfBlue-600 text-white text-xs font-bold rounded-xl shadow-sm">Run 3-Way Match & Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        let materials = JSON.parse(localStorage.getItem('sf_materials')) || [];
+        let vendors = JSON.parse(localStorage.getItem('sf_vendors')) || [];
+        let requisitions = JSON.parse(localStorage.getItem('sf_requisitions')) || [];
+        let rfqs = JSON.parse(localStorage.getItem('sf_rfqs')) || [];
+        let orders = JSON.parse(localStorage.getItem('sf_orders')) || [];
+        let goodsReceipts = JSON.parse(localStorage.getItem('sf_grs')) || [];
+        let gatePasses = JSON.parse(localStorage.getItem('sf_gps')) || [];
+        let movements = JSON.parse(localStorage.getItem('sf_movements')) || [];
+        let issues = JSON.parse(localStorage.getItem('sf_issues')) || [];
+        let invoices = JSON.parse(localStorage.getItem('sf_invoices')) || [];
+
+        let chartDashInv = null;
+        let chartDashPo = null;
+        let chartInvAnalytics = null;
+        let chartPurAnalytics = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+
+        function persist() {
+            localStorage.setItem('sf_materials', JSON.stringify(materials));
+            localStorage.setItem('sf_vendors', JSON.stringify(vendors));
+            localStorage.setItem('sf_requisitions', JSON.stringify(requisitions));
+            localStorage.setItem('sf_rfqs', JSON.stringify(rfqs));
+            localStorage.setItem('sf_orders', JSON.stringify(orders));
+            localStorage.setItem('sf_grs', JSON.stringify(goodsReceipts));
+            localStorage.setItem('sf_gps', JSON.stringify(gatePasses));
+            localStorage.setItem('sf_movements', JSON.stringify(movements));
+            localStorage.setItem('sf_issues', JSON.stringify(issues));
+            localStorage.setItem('sf_invoices', JSON.stringify(invoices));
+            renderAll();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-sfBlue-50', 'text-sfBlue-700', 'font-semibold');
+                btn.classList.add('text-sfGray-700', 'font-medium');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-sfBlue-50', 'text-sfBlue-700', 'font-semibold');
+                activeBtn.classList.remove('text-sfGray-700', 'font-medium');
+            }
+
+            const titles = {
+                'dashboard': ['Master Analytics Cockpit', 'Real-time enterprise overview, inventory valuation, and P2P tracking'],
+                'materials': ['Material Master Catalog', 'Define and manage raw materials, units, and standard prices in ₹'],
+                'stock_lookup': ['Live Stock Lookup (MMBE)', 'View real-time stock balances, valuation, and availability'],
+                'gr': ['Goods Receipt (GR) Management', 'Post receipts against POs to update warehouse inventory'],
+                'gatepass': ['RGP & NRGP Gate Passes', 'Track returnable and non-returnable material gate passes'],
+                'movement': ['Stock Movement Ledger', 'Complete audit trail of inventory transactions'],
+                'issue': ['Material Issue Management', 'Issue stock to shop floor and departments'],
+                'inv_analytics': ['Inventory Analytics', 'Deep dive into stock valuation and inventory distribution'],
+                'vendors': ['Vendor Master Directory', 'Approved supplier management and payment terms'],
+                'pr': ['Purchase Requisitions', 'Internal material purchase requirements'],
+                'rfq': ['RFQ & Quotations', 'Vendor bidding and price comparison'],
+                'po': ['Purchase Orders (PO)', 'Binding vendor purchase contracts'],
+                'miro': ['Invoice Verification (MIRO)', '3-way match invoice verification against PO and GR'],
+                'pur_analytics': ['Purchase Analytics', 'Spend analytics and supplier performance metrics']
+            };
+
+            if(titles[tabId]) {
+                document.getElementById('page-title').innerText = titles[tabId][0];
+                document.getElementById('page-subtitle').innerText = titles[tabId][1];
+            }
+
+            if(tabId === 'dashboard' || tabId === 'inv_analytics' || tabId === 'pur_analytics') {
+                setTimeout(initCharts, 50);
+            }
+            if(tabId === 'stock_lookup') {
+                renderStockLookup();
+            }
+        }
+
+        function openModal(id) {
+            populateSelects();
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function quickActionPrompt() {
+            switchTab('materials');
+            openModal('materialModal');
+        }
+
+        function populateSelects() {
+            const matSelects = ['pr-mat', 'rfq-mat', 'po-mat', 'gp-mat', 'issue-mat'];
+            matSelects.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.innerHTML = materials.length ? '' : '<option value="">-- No Materials Available --</option>';
+                    materials.forEach(m => {
+                        el.innerHTML += `<option value="${m.id}">${m.id} - ${m.desc}</option>`;
+                    });
+                }
+            });
+
+            const vendSelects = ['rfq-vendor', 'po-vendor'];
+            vendSelects.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.innerHTML = vendors.length ? '' : '<option value="">-- No Vendors Available --</option>';
+                    vendors.forEach(v => {
+                        el.innerHTML += `<option value="${v.id}">${v.id} - ${v.name}</option>`;
+                    });
+                }
+            });
+
+            const poSelects = ['gr-po', 'miro-po'];
+            poSelects.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.innerHTML = orders.length ? '' : '<option value="">-- No Active POs Available --</option>';
+                    orders.forEach(po => {
+                        el.innerHTML += `<option value="${po.id}">${po.id} (${po.material}) - Qty: ${po.qty}</option>`;
+                    });
+                }
+            });
+        }
+
+        function saveMaterial() {
+            const id = document.getElementById('m-id').value.trim();
+            const desc = document.getElementById('m-desc').value.trim();
+            const group = document.getElementById('m-group').value.trim() || 'General';
+            const unit = document.getElementById('m-unit').value.trim() || 'PCS';
+            const price = parseFloat(document.getElementById('m-price').value) || 0;
+            const stock = parseFloat(document.getElementById('m-stock').value) || 0;
+
+            if(!id || !desc) { alert('Please enter Material ID and Description.'); return; }
+            materials.push({ id, desc, group, unit, price, stock });
+            if(stock > 0) {
+                movements.push({ id: 'MOV-' + Date.now(), material: id, type: 'Initial Stock', qty: stock, ref: 'Manual Entry', date: new Date().toLocaleDateString() });
+            }
+            closeModal('materialModal');
+            persist();
+        }
+
+        function deleteMaterial(idx) {
+            materials.splice(idx, 1);
+            persist();
+        }
+
+        function saveVendor() {
+            const id = document.getElementById('v-id').value.trim();
+            const name = document.getElementById('v-name').value.trim();
+            const email = document.getElementById('v-email').value.trim();
+            const terms = document.getElementById('v-terms').value.trim();
+
+            if(!id || !name) { alert('Please enter Vendor ID and Name.'); return; }
+            vendors.push({ id, name, email, terms });
+            closeModal('vendorModal');
+            persist();
+        }
+
+        function deleteVendor(idx) {
+            vendors.splice(idx, 1);
+            persist();
+        }
+
+        function openPrModal() { openModal('prModal'); }
+        function savePr() {
+            const material = document.getElementById('pr-mat').value;
+            const qty = parseFloat(document.getElementById('pr-qty').value) || 1;
+            const req = document.getElementById('pr-req').value;
+
+            if(!material) { alert('Please select a material.'); return; }
+            requisitions.push({ id: 'PR-' + (1000 + requisitions.length + 1), material, qty, req, status: 'Pending PO' });
+            closeModal('prModal');
+            persist();
+        }
+
+        function openRfqModal() { openModal('rfqModal'); }
+        function saveRfq() {
+            const material = document.getElementById('rfq-mat').value;
+            const vendor = document.getElementById('rfq-vendor').value;
+            const qty = parseFloat(document.getElementById('rfq-qty').value) || 1;
+            const price = parseFloat(document.getElementById('rfq-price').value) || 0;
+
+            if(!material || !vendor) { alert('Please select material and vendor.'); return; }
+            rfqs.push({ id: 'RFQ-' + (1000 + rfqs.length + 1), material, vendor, qty, price, status: 'Quoted' });
+            closeModal('rfqModal');
+            persist();
+        }
+
+        function openPoModal() { openModal('poModal'); }
+        function savePo() {
+            const vendor = document.getElementById('po-vendor').value;
+            const material = document.getElementById('po-mat').value;
+            const qty = parseFloat(document.getElementById('po-qty').value) || 1;
+            const price = parseFloat(document.getElementById('po-price').value) || 0;
+
+            if(!vendor || !material) { alert('Please select vendor and material.'); return; }
+            const netValue = qty * price;
+            orders.push({ id: 'PO-' + (45001 + orders.length), vendor, material, qty, price, netValue, status: 'Open' });
+            closeModal('poModal');
+            persist();
+        }
+
+        function deletePo(idx) {
+            orders.splice(idx, 1);
+            persist();
+        }
+
+        function openGrModal() { openModal('grModal'); }
+        function saveGr() {
+            const poId = document.getElementById('gr-po').value;
+            const qty = parseFloat(document.getElementById('gr-qty').value) || 1;
+            const po = orders.find(o => o.id === poId);
+
+            if(!po) { alert('Please select a valid PO.'); return; }
+            po.status = 'Received';
+
+            const mat = materials.find(m => m.id === po.material);
+            if(mat) { mat.stock += qty; }
+
+            const grId = 'GR-' + (5001 + goodsReceipts.length);
+            goodsReceipts.push({ id: grId, po: poId, material: po.material, qty, date: new Date().toLocaleDateString() });
+            movements.push({ id: 'MOV-' + Date.now(), material: po.material, type: 'Goods Receipt (GR)', qty: '+' + qty, ref: grId, date: new Date().toLocaleDateString() });
+
+            closeModal('grModal');
+            persist();
+        }
+
+        function openGatePassModal() { openModal('gatePassModal'); }
+        function saveGatePass() {
+            const type = document.getElementById('gp-type').value;
+            const qty = parseFloat(document.getElementById('gp-qty').value) || 1;
+            const material = document.getElementById('gp-mat').value;
+            const recipient = document.getElementById('gp-recipient').value;
+            const retDate = document.getElementById('gp-date').value || 'N/A';
+
+            if(!material) { alert('Please select material.'); return; }
+            gatePasses.push({ id: 'GP-' + (9001 + gatePasses.length), type, material, qty, recipient, retDate, status: 'Active' });
+            closeModal('gatePassModal');
+            persist();
+        }
+
+        function openIssueModal() { openModal('issueModal'); }
+        function saveIssue() {
+            const material = document.getElementById('issue-mat').value;
+            const qty = parseFloat(document.getElementById('issue-qty').value) || 1;
+            const dept = document.getElementById('issue-dept').value;
+
+            const mat = materials.find(m => m.id === material);
+            if(!mat) { alert('Material not found.'); return; }
+            if(mat.stock < qty) { alert('Insufficient stock available!'); return; }
+
+            mat.stock -= qty;
+            const issueId = 'ISS-' + (3001 + issues.length);
+            issues.push({ id: issueId, material, qty, dept, date: new Date().toLocaleDateString() });
+            movements.push({ id: 'MOV-' + Date.now(), material, type: 'Material Issue', qty: '-' + qty, ref: issueId, date: new Date().toLocaleDateString() });
+
+            closeModal('issueModal');
+            persist();
+        }
+
+        function openMiroModal() { openModal('miroModal'); }
+        function saveMiro() {
+            const poId = document.getElementById('miro-po').value;
+            const amount = parseFloat(document.getElementById('miro-amt').value) || 0;
+            const po = orders.find(o => o.id === poId);
+
+            if(!po) { alert('Select valid PO.'); return; }
+            const matchStatus = Math.abs(po.netValue - amount) < 1 ? 'Passed (3-Way Match)' : 'Price Variance Warning';
+
+            invoices.push({ id: 'INV-' + (7001 + invoices.length), po: poId, vendor: po.vendor, amount, match: matchStatus, status: 'Cleared' });
+            closeModal('miroModal');
+            persist();
+        }
+
+        function resetAllData() {
+            if(confirm('Are you sure you want to clear all data and reset Stock Flow to a clean state?')) {
+                localStorage.clear();
+                materials = []; vendors = []; requisitions = []; rfqs = []; orders = [];
+                goodsReceipts = []; gatePasses = []; movements = []; issues = []; invoices = [];
+                persist();
+            }
+        }
+
+        function renderStockLookup() {
+            const lookupTbody = document.getElementById('stock-lookup-table-body');
+            const query = (document.getElementById('stock-search')?.value || '').toLowerCase();
+            const filtered = materials.filter(m => m.id.toLowerCase().includes(query) || m.desc.toLowerCase().includes(query));
+
+            lookupTbody.innerHTML = filtered.length ? '' : '<tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No matching materials found.</td></tr>';
+            filtered.forEach(m => {
+                const totalVal = m.stock * m.price;
+                const statusBadge = m.stock > 0 ? '<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-bold">In Stock</span>' : '<span class="px-2 py-0.5 bg-red-50 text-red-600 rounded font-bold">Out of Stock</span>';
+                lookupTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${m.id}</td>
+                        <td class="p-3 text-sfGray-700">${m.desc}</td>
+                        <td class="p-3">${m.group}</td>
+                        <td class="p-3 text-right font-bold text-sfBlue-600">${m.stock} ${m.unit}</td>
+                        <td class="p-3 text-right font-mono">₹${m.price.toLocaleString()}</td>
+                        <td class="p-3 text-right font-mono font-bold text-emerald-700">₹${totalVal.toLocaleString()}</td>
+                        <td class="p-3 text-center">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderAll() {
+            renderStockLookup();
+
+            // Materials
+            const matTbody = document.getElementById('materials-table-body');
+            matTbody.innerHTML = materials.length ? '' : '<tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No materials added yet. Click "Add Material" to begin.</td></tr>';
+            materials.forEach((m, idx) => {
+                matTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${m.id}</td>
+                        <td class="p-3 text-sfGray-700">${m.desc}</td>
+                        <td class="p-3">${m.group}</td>
+                        <td class="p-3">${m.unit}</td>
+                        <td class="p-3 text-right font-mono">₹${m.price.toLocaleString()}</td>
+                        <td class="p-3 text-right font-bold text-sfBlue-600">${m.stock} ${m.unit}</td>
+                        <td class="p-3 text-right"><button onclick="deleteMaterial(${idx})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+
+            // Vendors
+            const vendTbody = document.getElementById('vendors-table-body');
+            vendTbody.innerHTML = vendors.length ? '' : '<tr><td colspan="5" class="p-6 text-center text-sfGray-400 italic">No vendors added yet.</td></tr>';
+            vendors.forEach((v, idx) => {
+                vendTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${v.id}</td>
+                        <td class="p-3 text-sfGray-700">${v.name}</td>
+                        <td class="p-3">${v.email}</td>
+                        <td class="p-3">${v.terms}</td>
+                        <td class="p-3 text-right"><button onclick="deleteVendor(${idx})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+
+            // PRs
+            const prTbody = document.getElementById('pr-table-body');
+            prTbody.innerHTML = requisitions.length ? '' : '<tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No Purchase Requisitions created.</td></tr>';
+            requisitions.forEach(pr => {
+                prTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${pr.id}</td>
+                        <td class="p-3 text-sfBlue-600">${pr.material}</td>
+                        <td class="p-3 text-right">${pr.qty}</td>
+                        <td class="p-3">${pr.req}</td>
+                        <td class="p-3 text-amber-600 font-semibold">${pr.status}</td>
+                        <td class="p-3 text-right"><button onclick="switchTab('po')" class="px-2.5 py-1 bg-sfBlue-50 text-sfBlue-700 rounded text-[11px] font-bold">Convert to PO</button></td>
+                    </tr>
+                `;
+            });
+
+            // RFQs
+            const rfqTbody = document.getElementById('rfq-table-body');
+            rfqTbody.innerHTML = rfqs.length ? '' : '<tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No RFQs recorded.</td></tr>';
+            rfqs.forEach(r => {
+                rfqTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${r.id}</td>
+                        <td class="p-3 text-sfBlue-600">${r.material}</td>
+                        <td class="p-3 text-right">${r.qty}</td>
+                        <td class="p-3">${r.vendor}</td>
+                        <td class="p-3 text-right font-mono">₹${r.price.toLocaleString()}</td>
+                        <td class="p-3 text-emerald-600 font-semibold">${r.status}</td>
+                        <td class="p-3 text-right"></td>
+                    </tr>
+                `;
+            });
+
+            // POs
+            const poTbody = document.getElementById('po-table-body');
+            poTbody.innerHTML = orders.length ? '' : '<tr><td colspan="7" class="p-6 text-center text-sfGray-400 italic">No Purchase Orders created.</td></tr>';
+            orders.forEach((po, idx) => {
+                poTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${po.id}</td>
+                        <td class="p-3">${po.vendor}</td>
+                        <td class="p-3 text-sfBlue-600">${po.material}</td>
+                        <td class="p-3 text-right">${po.qty}</td>
+                        <td class="p-3 text-right font-mono font-bold">₹${po.netValue.toLocaleString()}</td>
+                        <td class="p-3 text-sfGray-600 font-semibold">${po.status}</td>
+                        <td class="p-3 text-right"><button onclick="deletePo(${idx})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+
+            // GRs
+            const grTbody = document.getElementById('gr-table-body');
+            grTbody.innerHTML = goodsReceipts.length ? '' : '<tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No Goods Receipts posted yet.</td></tr>';
+            goodsReceipts.forEach(gr => {
+                grTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${gr.id}</td>
+                        <td class="p-3 text-sfBlue-600">${gr.po}</td>
+                        <td class="p-3">${gr.material}</td>
+                        <td class="p-3 text-right font-bold text-emerald-600">+${gr.qty}</td>
+                        <td class="p-3">${gr.date}</td>
+                        <td class="p-3 text-right"></td>
+                    </tr>
+                `;
+            });
+
+            // Gate Passes
+            const gpTbody = document.getElementById('gatepass-table-body');
+            gpTbody.innerHTML = gatePasses.length ? '' : '<tr><td colspan="8" class="p-6 text-center text-sfGray-400 italic">No gate passes recorded.</td></tr>';
+            gatePasses.forEach(gp => {
+                gpTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${gp.id}</td>
+                        <td class="p-3 font-bold ${gp.type==='RGP'?'text-blue-600':'text-purple-600'}">${gp.type}</td>
+                        <td class="p-3">${gp.material}</td>
+                        <td class="p-3 text-right">${gp.qty}</td>
+                        <td class="p-3">${gp.recipient}</td>
+                        <td class="p-3 font-mono">${gp.retDate}</td>
+                        <td class="p-3 text-emerald-600 font-semibold">${gp.status}</td>
+                        <td class="p-3 text-right"></td>
+                    </tr>
+                `;
+            });
+
+            // Movements
+            const movTbody = document.getElementById('movement-table-body');
+            movTbody.innerHTML = movements.length ? '' : '<tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No stock movements recorded yet.</td></tr>';
+            movements.forEach(m => {
+                movTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${m.id}</td>
+                        <td class="p-3 text-sfBlue-600">${m.material}</td>
+                        <td class="p-3">${m.type}</td>
+                        <td class="p-3 text-right font-mono font-bold">${m.qty}</td>
+                        <td class="p-3 font-mono">${m.ref}</td>
+                        <td class="p-3 text-right">${m.date}</td>
+                    </tr>
+                `;
+            });
+
+            // Issues
+            const issTbody = document.getElementById('issue-table-body');
+            issTbody.innerHTML = issues.length ? '' : '<tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No material issues recorded.</td></tr>';
+            issues.forEach(i => {
+                issTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${i.id}</td>
+                        <td class="p-3 text-sfBlue-600">${i.material}</td>
+                        <td class="p-3 text-right font-bold text-red-600">-${i.qty}</td>
+                        <td class="p-3">${i.dept}</td>
+                        <td class="p-3 text-right">${i.date}</td>
+                        <td class="p-3 text-right"></td>
+                    </tr>
+                `;
+            });
+
+            // Invoices (MIRO)
+            const miroTbody = document.getElementById('miro-table-body');
+            miroTbody.innerHTML = invoices.length ? '' : '<tr><td colspan="6" class="p-6 text-center text-sfGray-400 italic">No invoices verified.</td></tr>';
+            invoices.forEach(inv => {
+                miroTbody.innerHTML += `
+                    <tr class="hover:bg-sfGray-50">
+                        <td class="p-3 font-semibold text-sfGray-800">${inv.id}</td>
+                        <td class="p-3 text-sfBlue-600">${inv.po}</td>
+                        <td class="p-3">${inv.vendor}</td>
+                        <td class="p-3 text-right font-mono">₹${inv.amount.toLocaleString()}</td>
+                        <td class="p-3 text-center text-emerald-600 font-semibold">${inv.match}</td>
+                        <td class="p-3 text-right text-sfBlue-600 font-bold">${inv.status}</td>
+                    </tr>
+                `;
+            });
+
+            // KPIs
+            let totalInvVal = materials.reduce((acc, m) => acc + (m.stock * m.price), 0);
+            let totalPoSpend = orders.reduce((acc, po) => acc + po.netValue, 0);
+            let pendingPrCount = requisitions.filter(pr => pr.status === 'Pending PO').length;
+            let activeGpCount = gatePasses.filter(gp => gp.status === 'Active').length;
+            let totalUnits = materials.reduce((acc, m) => acc + m.stock, 0);
+
+            document.getElementById('dash-inv-val').innerText = '₹' + totalInvVal.toLocaleString();
+            document.getElementById('dash-mat-count').innerText = materials.length;
+            document.getElementById('dash-po-spend').innerText = '₹' + totalPoSpend.toLocaleString();
+            document.getElementById('dash-po-count').innerText = orders.length;
+            document.getElementById('dash-pr-count').innerText = pendingPrCount;
+            document.getElementById('dash-gp-count').innerText = activeGpCount;
+
+            document.getElementById('ia-skus').innerText = materials.length;
+            document.getElementById('ia-val').innerText = '₹' + totalInvVal.toLocaleString();
+            document.getElementById('ia-units').innerText = totalUnits;
+
+            document.getElementById('pa-spend').innerText = '₹' + totalPoSpend.toLocaleString();
+            document.getElementById('pa-vendors').innerText = vendors.length;
+            document.getElementById('pa-pos').innerText = orders.length;
+
+            initCharts();
+        }
+
+        function initCharts() {
+            let groups = {};
+            materials.forEach(m => { groups[m.group] = (groups[m.group] || 0) + (m.stock * m.price); });
+
+            const ctx1 = document.getElementById('dashChartInv').getContext('2d');
+            if(chartDashInv) chartDashInv.destroy();
+            chartDashInv = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(groups).length ? Object.keys(groups) : ['No Data'],
+                    datasets: [{ label: 'Valuation (₹)', data: Object.keys(groups).length ? Object.values(groups) : [0], backgroundColor: '#0284c7', borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+
+            let vSpend = {};
+            orders.forEach(po => { vSpend[po.vendor] = (vSpend[po.vendor] || 0) + po.netValue; });
+
+            const ctx2 = document.getElementById('dashChartPo').getContext('2d');
+            if(chartDashPo) chartDashPo.destroy();
+            chartDashPo = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(vSpend).length ? Object.keys(vSpend) : ['No Data'],
+                    datasets: [{ data: Object.keys(vSpend).length ? Object.values(vSpend) : [1], backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctx3 = document.getElementById('invAnalyticsChart').getContext('2d');
+            if(chartInvAnalytics) chartInvAnalytics.destroy();
+            chartInvAnalytics = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: materials.map(m => m.id),
+                    datasets: [{ label: 'Stock Value (₹)', data: materials.map(m => m.stock * m.price), backgroundColor: '#10b981', borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+
+            const ctx4 = document.getElementById('purAnalyticsChart').getContext('2d');
+            if(chartPurAnalytics) chartPurAnalytics.destroy();
+            chartPurAnalytics = new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: orders.map(po => po.id),
+                    datasets: [{ label: 'PO Net Value (₹)', data: orders.map(po => po.netValue), backgroundColor: '#f59e0b', borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    </script>
+</body>
+</html>
